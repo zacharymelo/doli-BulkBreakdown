@@ -29,6 +29,8 @@ LinkedMO = Linked MO: %s
 SelectLinesToProcess = Select which lines to break down into individual units. Uncheck lines you want to keep as bulk.
 NoLinesSelected = No lines selected for processing.
 ReceptionMustBeClosed = Reception must be closed before processing breakdowns
+AllBreakdownsProcessed = All breakdown lines have already been processed
+ErrorAlreadyProcessed = %s has already been broken down for this reception
 
 AutoProcessDefault = Breakdown is default behavior
 AutoProcessDefaultDesc = When enabled, all products with a breakdown rule will be pre-checked for processing on reception. Individual products can override this in their Breakdown tab.

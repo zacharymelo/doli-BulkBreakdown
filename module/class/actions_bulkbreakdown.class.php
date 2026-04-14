@@ -84,8 +84,8 @@ class ActionsBulkbreakdown
 
 		$langs->load('bulkbreakdown@bulkbreakdown');
 
-		// Check if any reception lines have active breakdown rules
-		$sql = "SELECT COUNT(*) as nb";
+		// Count reception lines with breakdown rules, and how many are already processed
+		$sql = "SELECT rd.fk_product";
 		$sql .= " FROM ".MAIN_DB_PREFIX."receptiondet_batch rd";
 		$sql .= " INNER JOIN ".MAIN_DB_PREFIX."bulkbreakdown_rule br ON br.fk_product = rd.fk_product AND br.active = 1";
 		$sql .= " WHERE rd.fk_reception = ".((int) $object->id);
@@ -93,17 +93,42 @@ class ActionsBulkbreakdown
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			$obj = $this->db->fetch_object($resql);
-			if ($obj->nb > 0) {
-				if ($object->statut >= 2) {
-					// Reception is closed — button is active
-					$url = dol_buildpath('/bulkbreakdown/process_breakdown.php', 1).'?reception_id='.$object->id;
+			$totalLines = 0;
+			$processedLines = 0;
+			while ($row = $this->db->fetch_object($resql)) {
+				$totalLines++;
+				// Check if this product already has a linked MO for this reception
+				$sqlCheck = "SELECT COUNT(*) as nb FROM ".MAIN_DB_PREFIX."element_element el";
+				$sqlCheck .= " INNER JOIN ".MAIN_DB_PREFIX."mrp_mo mo ON mo.rowid = el.fk_source";
+				$sqlCheck .= " WHERE el.sourcetype = 'mo' AND el.targettype = 'reception'";
+				$sqlCheck .= " AND el.fk_target = ".((int) $object->id);
+				$sqlCheck .= " AND mo.fk_product = ".((int) $row->fk_product);
+				$resCheck = $this->db->query($sqlCheck);
+				if ($resCheck) {
+					$objCheck = $this->db->fetch_object($resCheck);
+					if ($objCheck->nb > 0) {
+						$processedLines++;
+					}
+				}
+			}
+
+			if ($totalLines > 0) {
+				$url = dol_buildpath('/bulkbreakdown/process_breakdown.php', 1).'?reception_id='.$object->id;
+
+				if ($processedLines >= $totalLines) {
+					// All lines already processed
+					print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans('AllBreakdownsProcessed')).'">';
+					print img_picto('', 'mrp', 'class="pictofixedwidth"');
+					print $langs->trans('ProcessBreakdowns');
+					print '</a>';
+				} elseif ($object->statut >= 2) {
+					// Reception is closed, unprocessed lines remain — button is active
 					print '<a class="butAction" href="'.$url.'">';
 					print img_picto('', 'mrp', 'class="pictofixedwidth"');
 					print $langs->trans('ProcessBreakdowns');
 					print '</a>';
 				} else {
-					// Reception is validated but not closed — button is grayed out
+					// Reception not closed yet
 					print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans('ReceptionMustBeClosed')).'">';
 					print img_picto('', 'mrp', 'class="pictofixedwidth"');
 					print $langs->trans('ProcessBreakdowns');
