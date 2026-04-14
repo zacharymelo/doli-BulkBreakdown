@@ -321,19 +321,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 
 				$prodfourn = new ProductFournisseur($db);
 				$prodfourn->id = $line->fk_product;
-				$prodfourn->product_fourn_price_id = 0; // Force insert if no existing price
-
-				// Check for existing price from this supplier
-				$existingPrices = $prodfourn->list_product_fournisseur_price($line->fk_product, '', '', 0, 0, $supplierId);
-				if (is_array($existingPrices)) {
-					foreach ($existingPrices as $ep) {
-						// Match on qty=1 entries from this module (ref_fourn starts with BREAKDOWN-)
-						if (!empty($ep->fourn_ref) && strpos($ep->fourn_ref, 'BREAKDOWN-') === 0) {
-							$prodfourn->product_fourn_price_id = $ep->product_fourn_price_id;
-							break;
-						}
-					}
-				}
+				$prodfourn->product_fourn_price_id = 0; // Always insert new entry for history
 
 				$refFourn = 'BREAKDOWN-'.$mo->ref;
 				$descFourn = $langs->trans('Breakdown').' ('.$mo->ref.')';
