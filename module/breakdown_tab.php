@@ -72,8 +72,7 @@ if ($action == 'createRule' && $permwrite) {
 	$rule = new BreakdownRule($db);
 	$rule->fk_product = $id;
 	$rule->fk_bom = GETPOSTINT('fk_bom');
-	$rule->fk_warehouse_source = GETPOSTINT('fk_warehouse_source') > 0 ? GETPOSTINT('fk_warehouse_source') : null;
-	$rule->fk_warehouse_dest = GETPOSTINT('fk_warehouse_dest') > 0 ? GETPOSTINT('fk_warehouse_dest') : null;
+	$rule->fk_warehouse = GETPOSTINT('fk_warehouse') > 0 ? GETPOSTINT('fk_warehouse') : null;
 	$rule->active = 1;
 	$rule->note = GETPOST('note', 'restricthtml');
 
@@ -93,8 +92,7 @@ if ($action == 'createRule' && $permwrite) {
 
 if ($action == 'updateRule' && $permwrite && $ruleExists > 0) {
 	$rule->fk_bom = GETPOSTINT('fk_bom');
-	$rule->fk_warehouse_source = GETPOSTINT('fk_warehouse_source') > 0 ? GETPOSTINT('fk_warehouse_source') : null;
-	$rule->fk_warehouse_dest = GETPOSTINT('fk_warehouse_dest') > 0 ? GETPOSTINT('fk_warehouse_dest') : null;
+	$rule->fk_warehouse = GETPOSTINT('fk_warehouse') > 0 ? GETPOSTINT('fk_warehouse') : null;
 	$rule->note = GETPOST('note', 'restricthtml');
 
 	if ($rule->fk_bom <= 0) {
@@ -176,7 +174,6 @@ if ($ruleExists > 0) {
 	// Check BOM status
 	$bomActive = isset($bomOptions[$rule->fk_bom]);
 	if (!$bomActive) {
-		// Also check if BOM exists but is inactive
 		$sqlCheck = "SELECT b.rowid, b.ref, b.status FROM ".MAIN_DB_PREFIX."bom_bom b WHERE b.rowid = ".((int) $rule->fk_bom);
 		$resCheck = $db->query($sqlCheck);
 		if ($resCheck && $db->num_rows($resCheck) > 0) {
@@ -205,15 +202,9 @@ if ($ruleExists > 0) {
 		}
 		print '</td></tr>';
 
-		// Source warehouse
-		print '<tr><td>'.$langs->trans('SourceWarehouse').'</td><td>';
-		$formproduct->selectWarehouses($rule->fk_warehouse_source, 'fk_warehouse_source', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
-		print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
-		print '</td></tr>';
-
-		// Dest warehouse
-		print '<tr><td>'.$langs->trans('DestWarehouse').'</td><td>';
-		$formproduct->selectWarehouses($rule->fk_warehouse_dest, 'fk_warehouse_dest', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
+		// Warehouse
+		print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
+		print $formproduct->selectWarehouses($rule->fk_warehouse, 'fk_warehouse', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
 		print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
 		print '</td></tr>';
 
@@ -252,21 +243,11 @@ if ($ruleExists > 0) {
 			print '</td></tr>';
 		}
 
-		// Source warehouse
-		if ($rule->fk_warehouse_source > 0) {
+		// Warehouse
+		if ($rule->fk_warehouse > 0) {
 			$wh = new Entrepot($db);
-			$wh->fetch($rule->fk_warehouse_source);
-			print '<tr><td>'.$langs->trans('SourceWarehouse').'</td><td>';
-			print img_picto('', 'stock', 'class="pictofixedwidth"');
-			print '<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id='.((int) $wh->id).'">'.$wh->ref.'</a>';
-			print '</td></tr>';
-		}
-
-		// Dest warehouse
-		if ($rule->fk_warehouse_dest > 0) {
-			$wh = new Entrepot($db);
-			$wh->fetch($rule->fk_warehouse_dest);
-			print '<tr><td>'.$langs->trans('DestWarehouse').'</td><td>';
+			$wh->fetch($rule->fk_warehouse);
+			print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
 			print img_picto('', 'stock', 'class="pictofixedwidth"');
 			print '<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id='.((int) $wh->id).'">'.$wh->ref.'</a>';
 			print '</td></tr>';
@@ -307,15 +288,9 @@ if ($ruleExists > 0) {
 			print $form->selectarray('fk_bom', $bomOptions, GETPOSTINT('fk_bom'), 1, 0, 0, '', 0, 0, 0, '', 'minwidth200');
 			print '</td></tr>';
 
-			// Source warehouse
-			print '<tr><td>'.$langs->trans('SourceWarehouse').'</td><td>';
-			$formproduct->selectWarehouses(GETPOSTINT('fk_warehouse_source'), 'fk_warehouse_source', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
-			print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
-			print '</td></tr>';
-
-			// Dest warehouse
-			print '<tr><td>'.$langs->trans('DestWarehouse').'</td><td>';
-			$formproduct->selectWarehouses(GETPOSTINT('fk_warehouse_dest'), 'fk_warehouse_dest', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
+			// Warehouse
+			print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
+			print $formproduct->selectWarehouses(GETPOSTINT('fk_warehouse'), 'fk_warehouse', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
 			print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
 			print '</td></tr>';
 

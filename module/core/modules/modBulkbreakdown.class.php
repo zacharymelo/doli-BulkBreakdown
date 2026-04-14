@@ -58,8 +58,7 @@ class modBulkbreakdown extends DolibarrModules
 
 		// Constants
 		$this->const = array(
-			0 => array('BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE', 'chaine', '', 'Default source warehouse for breakdown consumption', 0, 'current'),
-			1 => array('BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST', 'chaine', '', 'Default destination warehouse for breakdown production', 0, 'current'),
+			0 => array('BULKBREAKDOWN_DEFAULT_WAREHOUSE', 'chaine', '', 'Default warehouse for breakdown processing', 0, 'current'),
 		);
 
 		// Tabs

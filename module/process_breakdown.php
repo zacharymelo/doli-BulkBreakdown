@@ -102,33 +102,23 @@ if ($action == 'confirmProcess') {
 				continue;
 			}
 
-			// Resolve warehouses: POST override > rule override > global default
-			$whSourceKey = 'wh_source_'.$receptiondetId;
-			$whDestKey = 'wh_dest_'.$receptiondetId;
-
-			$whSource = GETPOSTINT($whSourceKey);
-			if ($whSource <= 0) {
-				$whSource = (int) $lineData->fk_warehouse_source;
+			// Resolve warehouse: POST override > rule override > global default
+			$whKey = 'wh_'.$receptiondetId;
+			$warehouse = GETPOSTINT($whKey);
+			if ($warehouse <= 0) {
+				$warehouse = (int) $lineData->fk_warehouse;
 			}
-			if ($whSource <= 0) {
-				$whSource = getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE');
+			if ($warehouse <= 0) {
+				$warehouse = getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE');
 			}
 
-			$whDest = GETPOSTINT($whDestKey);
-			if ($whDest <= 0) {
-				$whDest = (int) $lineData->fk_warehouse_dest;
-			}
-			if ($whDest <= 0) {
-				$whDest = getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST');
-			}
-
-			if ($whSource <= 0 || $whDest <= 0) {
+			if ($warehouse <= 0) {
 				$errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('Warehouse')).' ('.$lineData->product_ref.')';
 				continue;
 			}
 
 			// Calculate total purchase price for cost propagation
-			$totalPrice = (float) $lineData->qty * 0; // Will be enhanced to pull from PO line
+			$totalPrice = 0;
 
 			// Fetch the actual purchase price from the supplier order line
 			$sqlPrice = "SELECT cfd.subprice, cfd.qty as order_qty";
@@ -148,8 +138,7 @@ if ($action == 'confirmProcess') {
 				(int) $lineData->fk_bom,
 				(int) $lineData->fk_product,
 				(float) $lineData->qty,
-				$whSource,
-				$whDest,
+				$warehouse,
 				$receptionId,
 				$totalPrice
 			);
@@ -242,8 +231,7 @@ if (empty($breakdownLines)) {
 	print '<th class="liste_titre right">'.$langs->trans('Qty').'</th>';
 	print '<th class="liste_titre">'.$langs->trans('BOM').'</th>';
 	print '<th class="liste_titre">'.$langs->trans('BreakdownSummary', '', '', '', '').'</th>';
-	print '<th class="liste_titre">'.$langs->trans('SourceWarehouse').'</th>';
-	print '<th class="liste_titre">'.$langs->trans('DestWarehouse').'</th>';
+	print '<th class="liste_titre">'.$langs->trans('Warehouse').'</th>';
 	print '<th class="liste_titre center">'.$langs->trans('Status').'</th>';
 	print '</tr>';
 
@@ -297,19 +285,11 @@ if (empty($breakdownLines)) {
 		}
 		print '</td>';
 
-		// Source warehouse
+		// Warehouse
 		print '<td>';
 		if (!$alreadyProcessed && $line->bom_status == 1) {
-			$defaultSource = (int) $line->fk_warehouse_source > 0 ? (int) $line->fk_warehouse_source : getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE');
-			$formproduct->selectWarehouses($defaultSource, 'wh_source_'.$line->receptiondet_id, '', 1, 0, 0, '', 0, 0, array(), 'minwidth150');
-		}
-		print '</td>';
-
-		// Dest warehouse
-		print '<td>';
-		if (!$alreadyProcessed && $line->bom_status == 1) {
-			$defaultDest = (int) $line->fk_warehouse_dest > 0 ? (int) $line->fk_warehouse_dest : getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST');
-			$formproduct->selectWarehouses($defaultDest, 'wh_dest_'.$line->receptiondet_id, '', 1, 0, 0, '', 0, 0, array(), 'minwidth150');
+			$defaultWh = (int) $line->fk_warehouse > 0 ? (int) $line->fk_warehouse : getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE');
+			print $formproduct->selectWarehouses($defaultWh, 'wh_'.$line->receptiondet_id, '', 1, 0, 0, '', 0, 0, array(), 'minwidth150');
 		}
 		print '</td>';
 

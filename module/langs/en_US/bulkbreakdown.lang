@@ -15,8 +15,6 @@ ConfirmDeleteBreakdownRule = Are you sure you want to delete this breakdown rule
 
 SelectBOM = Select Disassembly BOM
 NoBOMFound = No active Disassembly BOMs found for this product. Create one in the BOM module first.
-SourceWarehouse = Source Warehouse (consume from)
-DestWarehouse = Destination Warehouse (produce into)
 UseDefault = Use default from settings
 
 ProcessBreakdowns = Process Breakdowns
@@ -32,10 +30,8 @@ LinkedMO = Linked MO: %s
 SelectLinesToProcess = Select which lines to break down into individual units. Uncheck lines you want to keep as bulk.
 NoLinesSelected = No lines selected for processing.
 
-DefaultSourceWarehouse = Default Source Warehouse
-DefaultSourceWarehouseDesc = Default warehouse to consume bulk products from during breakdown
-DefaultDestWarehouse = Default Destination Warehouse
-DefaultDestWarehouseDesc = Default warehouse to produce individual units into during breakdown
+DefaultWarehouse = Default Warehouse
+DefaultWarehouseDesc = Default warehouse used for both consuming bulk products and producing individual units during breakdown
 
 PermissionBreakdownRead = Read breakdown rules
 PermissionBreakdownWrite = Create and edit breakdown rules

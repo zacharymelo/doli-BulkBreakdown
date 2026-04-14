@@ -43,11 +43,8 @@ $action = GETPOST('action', 'aZ09');
 // ---- Actions ----
 
 if ($action == 'update') {
-	$whSource = GETPOSTINT('BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE');
-	$whDest = GETPOSTINT('BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST');
-
-	dolibarr_set_const($db, 'BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE', $whSource, 'chaine', 0, '', $conf->entity);
-	dolibarr_set_const($db, 'BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST', $whDest, 'chaine', 0, '', $conf->entity);
+	$wh = GETPOSTINT('BULKBREAKDOWN_DEFAULT_WAREHOUSE');
+	dolibarr_set_const($db, 'BULKBREAKDOWN_DEFAULT_WAREHOUSE', $wh, 'chaine', 0, '', $conf->entity);
 
 	setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 	header('Location: '.$_SERVER['PHP_SELF']);
@@ -78,6 +75,9 @@ if (!isModEnabled('stock')) {
 if (!isModEnabled('product')) {
 	$missingDeps[] = 'Product';
 }
+if (!isModEnabled('reception')) {
+	$missingDeps[] = 'Reception';
+}
 if (!empty($missingDeps)) {
 	print '<div class="warning">';
 	print img_warning().' Required modules not enabled: '.implode(', ', $missingDeps);
@@ -97,20 +97,12 @@ print '<td>'.$langs->trans('Parameter').'</td>';
 print '<td>'.$langs->trans('Value').'</td>';
 print '</tr>';
 
-// Default source warehouse
+// Default warehouse
 print '<tr class="oddeven"><td>';
-print $langs->trans('DefaultSourceWarehouse');
-print '<br><span class="opacitymedium small">'.$langs->trans('DefaultSourceWarehouseDesc').'</span>';
+print $langs->trans('DefaultWarehouse');
+print '<br><span class="opacitymedium small">'.$langs->trans('DefaultWarehouseDesc').'</span>';
 print '</td><td>';
-$formproduct->selectWarehouses(getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE'), 'BULKBREAKDOWN_DEFAULT_WAREHOUSE_SOURCE', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
-print '</td></tr>';
-
-// Default destination warehouse
-print '<tr class="oddeven"><td>';
-print $langs->trans('DefaultDestWarehouse');
-print '<br><span class="opacitymedium small">'.$langs->trans('DefaultDestWarehouseDesc').'</span>';
-print '</td><td>';
-$formproduct->selectWarehouses(getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST'), 'BULKBREAKDOWN_DEFAULT_WAREHOUSE_DEST', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
+print $formproduct->selectWarehouses(getDolGlobalString('BULKBREAKDOWN_DEFAULT_WAREHOUSE'), 'BULKBREAKDOWN_DEFAULT_WAREHOUSE', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
 print '</td></tr>';
 
 print '</table>';

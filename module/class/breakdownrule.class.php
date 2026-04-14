@@ -39,8 +39,7 @@ class BreakdownRule extends CommonObject
 		'entity' => array('type' => 'integer', 'label' => 'Entity', 'enabled' => 1, 'visible' => 0, 'position' => 5, 'notnull' => 1, 'default' => '1', 'index' => 1),
 		'fk_product' => array('type' => 'integer:Product:product/class/product.class.php:0', 'label' => 'Product', 'enabled' => 1, 'visible' => 1, 'position' => 10, 'notnull' => 1, 'index' => 1),
 		'fk_bom' => array('type' => 'integer:BOM:bom/class/bom.class.php:0:(t.status:=:1)', 'label' => 'BOM', 'enabled' => 1, 'visible' => 1, 'position' => 20, 'notnull' => 1, 'index' => 1),
-		'fk_warehouse_source' => array('type' => 'integer:Entrepot:product/stock/class/entrepot.class.php:0', 'label' => 'SourceWarehouse', 'enabled' => 1, 'visible' => 1, 'position' => 30, 'notnull' => -1),
-		'fk_warehouse_dest' => array('type' => 'integer:Entrepot:product/stock/class/entrepot.class.php:0', 'label' => 'DestWarehouse', 'enabled' => 1, 'visible' => 1, 'position' => 40, 'notnull' => -1),
+		'fk_warehouse' => array('type' => 'integer:Entrepot:product/stock/class/entrepot.class.php:0', 'label' => 'Warehouse', 'enabled' => 1, 'visible' => 1, 'position' => 30, 'notnull' => -1),
 		'active' => array('type' => 'integer', 'label' => 'Active', 'enabled' => 1, 'visible' => 1, 'position' => 50, 'notnull' => 1, 'default' => '1'),
 		'note' => array('type' => 'text', 'label' => 'Note', 'enabled' => 1, 'visible' => 1, 'position' => 60, 'notnull' => -1),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => 1, 'visible' => -2, 'position' => 500, 'notnull' => 1),
@@ -60,14 +59,9 @@ class BreakdownRule extends CommonObject
 	public $fk_bom;
 
 	/**
-	 * @var int Source warehouse ID
+	 * @var int Warehouse ID (used for both consume and produce)
 	 */
-	public $fk_warehouse_source;
-
-	/**
-	 * @var int Destination warehouse ID
-	 */
-	public $fk_warehouse_dest;
+	public $fk_warehouse;
 
 	/**
 	 * @var int Active flag
