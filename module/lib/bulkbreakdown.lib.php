@@ -317,7 +317,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 
 		foreach ($mo->lines as $line) {
 			if ($line->role == 'toproduce' && $line->qty > 0) {
-				$unitCost = (float) price2num($purchasePrice / $line->qty, 8);
+				$unitCost = (float) price2num($purchasePrice / $line->qty, 'MU');
 
 				$prodfourn = new ProductFournisseur($db);
 				$prodfourn->id = $line->fk_product;
