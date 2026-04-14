@@ -107,13 +107,13 @@ if ($action == 'confirmProcess') {
 			}
 
 			// Calculate total purchase price for cost propagation
+			// The reception line (receptiondet_batch.fk_elementdet) points to the
+			// supplier order line (commande_fournisseurdet) which has the subprice.
 			$totalPrice = 0;
-
-			// Fetch the actual purchase price from the supplier order line
-			$sqlPrice = "SELECT cfd.subprice, cfd.qty as order_qty";
-			$sqlPrice .= " FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch cfd";
-			$sqlPrice .= " WHERE cfd.fk_reception = ".((int) $receptionId);
-			$sqlPrice .= " AND cfd.fk_product = ".((int) $lineData->fk_product);
+			$sqlPrice = "SELECT cfd.subprice";
+			$sqlPrice .= " FROM ".MAIN_DB_PREFIX."commande_fournisseurdet cfd";
+			$sqlPrice .= " INNER JOIN ".MAIN_DB_PREFIX."receptiondet_batch rd ON rd.fk_elementdet = cfd.rowid";
+			$sqlPrice .= " WHERE rd.rowid = ".((int) $receptiondetId);
 			$sqlPrice .= " LIMIT 1";
 			$resPrice = $db->query($sqlPrice);
 			if ($resPrice && $db->num_rows($resPrice) > 0) {
