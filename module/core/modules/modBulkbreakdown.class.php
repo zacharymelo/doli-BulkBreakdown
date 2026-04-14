@@ -32,7 +32,7 @@ class modBulkbreakdown extends DolibarrModules
 		$this->module_position = '90';
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		$this->description = 'Convert bulk purchased products into individual inventory units using BOM/MRP';
-		$this->version = '1.0.1';
+		$this->version = '1.0.2';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		$this->picto = 'mrp';
 
@@ -56,10 +56,8 @@ class modBulkbreakdown extends DolibarrModules
 		$this->phpmin = array(7, 0);
 		$this->need_dolibarr_version = array(16, 0);
 
-		// Constants
-		$this->const = array(
-			0 => array('BULKBREAKDOWN_DEFAULT_WAREHOUSE', 'chaine', '', 'Default warehouse for breakdown processing', 0, 'current'),
-		);
+		// No module-level constants needed — warehouse is taken from reception line
+		$this->const = array();
 
 		// Tabs
 		$this->tabs = array();

@@ -25,9 +25,9 @@ function fetchBreakdownRulesForReception($db, $receptionId)
 	$lines = array();
 
 	// Get reception lines joined with breakdown rules and BOM info
-	$sql = "SELECT rd.rowid as receptiondet_id, rd.fk_product, rd.qty,";
+	$sql = "SELECT rd.rowid as receptiondet_id, rd.fk_product, rd.qty, rd.fk_entrepot,";
 	$sql .= " p.ref as product_ref, p.label as product_label,";
-	$sql .= " br.rowid as rule_id, br.fk_bom, br.fk_warehouse,";
+	$sql .= " br.rowid as rule_id, br.fk_bom,";
 	$sql .= " b.ref as bom_ref, b.label as bom_label, b.status as bom_status, b.bomtype,";
 	$sql .= " b.fk_product as bom_product_id, b.qty as bom_qty";
 	$sql .= " FROM ".MAIN_DB_PREFIX."receptiondet_batch rd";
@@ -119,17 +119,20 @@ function getLinkedMOsForReceptionProduct($db, $receptionId, $productId)
 /**
  * Process a single breakdown line: create MO, validate, produce stock movements
  *
- * @param  DoliDB $db          Database handler
- * @param  User   $user        Current user
- * @param  int    $bomId       BOM ID (disassembly type)
- * @param  int    $productId   Bulk product ID (consumed)
- * @param  float  $receivedQty Quantity received of the bulk product
- * @param  int    $warehouse   Warehouse ID (used for both consume and produce)
- * @param  int    $receptionId Reception ID (for linking)
- * @param  float  $unitPrice   Total purchase price for cost propagation
- * @return int                 MO ID if OK, <0 if error
+ * Uses the same warehouse for both consuming the bulk product and producing
+ * the individual units. The warehouse comes from the reception line (fk_entrepot).
+ *
+ * @param  DoliDB $db              Database handler
+ * @param  User   $user            Current user
+ * @param  int    $bomId           BOM ID (disassembly type)
+ * @param  int    $productId       Bulk product ID (consumed)
+ * @param  float  $receivedQty     Quantity received of the bulk product
+ * @param  int    $warehouseId     Warehouse ID from reception line (fk_entrepot)
+ * @param  int    $receptionId     Reception ID (for linking)
+ * @param  float  $purchasePrice   Total purchase price for cost propagation
+ * @return int                     MO ID if OK, <0 if error
  */
-function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $warehouse, $receptionId, $unitPrice = 0)
+function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $warehouseId, $receptionId, $purchasePrice = 0)
 {
 	global $langs;
 
@@ -163,7 +166,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 	$mo->fk_bom = $bom->id;
 	$mo->fk_product = $bom->fk_product; // The bulk product
 	$mo->qty = $receivedQty;
-	$mo->fk_warehouse = $warehouse;
+	$mo->fk_warehouse = $warehouseId;
 	$mo->mrptype = 1; // Disassembly (will be overridden by create() from BOM anyway)
 	$mo->label = $langs->trans('Breakdown').' - '.$bom->ref;
 	$mo->date_start_planned = dol_now();
@@ -200,7 +203,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 			$idstockmove = $stockmove->livraison(
 				$user,
 				$line->fk_product,
-				$warehouse,
+				$warehouseId,
 				$line->qty,
 				0,
 				$labelmovement,
@@ -217,7 +220,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 			$moline->fk_mo = $mo->id;
 			$moline->position = $pos;
 			$moline->fk_product = $line->fk_product;
-			$moline->fk_warehouse = $warehouse;
+			$moline->fk_warehouse = $warehouseId;
 			$moline->qty = $line->qty;
 			$moline->role = 'consumed';
 			$moline->fk_mrp_production = $line->id;
@@ -239,8 +242,8 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 
 			// Calculate unit cost for PMP update
 			$pricePerUnit = 0;
-			if ($unitPrice > 0 && $line->qty > 0) {
-				$pricePerUnit = $unitPrice / $line->qty;
+			if ($purchasePrice > 0 && $line->qty > 0) {
+				$pricePerUnit = $purchasePrice / $line->qty;
 			}
 
 			$labelmovement = $langs->trans('Breakdown').' - MO '.$mo->ref;
@@ -257,7 +260,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 			$idstockmove = $stockmove->reception(
 				$user,
 				$line->fk_product,
-				$warehouse,
+				$warehouseId,
 				$line->qty,
 				$pricePerUnit,
 				$labelmovement,
@@ -277,7 +280,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 			$moline->fk_mo = $mo->id;
 			$moline->position = $pos;
 			$moline->fk_product = $line->fk_product;
-			$moline->fk_warehouse = $warehouse;
+			$moline->fk_warehouse = $warehouseId;
 			$moline->qty = $line->qty;
 			$moline->batch = $batch;
 			$moline->role = 'produced';

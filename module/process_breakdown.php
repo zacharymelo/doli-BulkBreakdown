@@ -29,10 +29,8 @@ if (!$res) {
 }
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 require_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-require_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
 dol_include_once('/bulkbreakdown/lib/bulkbreakdown.lib.php');
 
 $langs->loadLangs(array('products', 'mrp', 'receptions', 'bulkbreakdown@bulkbreakdown'));
@@ -59,7 +57,6 @@ if ($result <= 0) {
 }
 
 $form = new Form($db);
-$formproduct = new FormProduct($db);
 
 // Fetch lines with breakdown rules
 $breakdownLines = fetchBreakdownRulesForReception($db, $receptionId);
@@ -102,16 +99,8 @@ if ($action == 'confirmProcess') {
 				continue;
 			}
 
-			// Resolve warehouse: POST override > rule override > global default
-			$whKey = 'wh_'.$receptiondetId;
-			$warehouse = GETPOSTINT($whKey);
-			if ($warehouse <= 0) {
-				$warehouse = (int) $lineData->fk_warehouse;
-			}
-			if ($warehouse <= 0) {
-				$warehouse = getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE');
-			}
-
+			// Use the warehouse from the reception line (where the goods were received)
+			$warehouse = (int) $lineData->fk_entrepot;
 			if ($warehouse <= 0) {
 				$errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('Warehouse')).' ('.$lineData->product_ref.')';
 				continue;
@@ -231,7 +220,7 @@ if (empty($breakdownLines)) {
 	print '<th class="liste_titre right">'.$langs->trans('Qty').'</th>';
 	print '<th class="liste_titre">'.$langs->trans('BOM').'</th>';
 	print '<th class="liste_titre">'.$langs->trans('BreakdownSummary', '', '', '', '').'</th>';
-	print '<th class="liste_titre">'.$langs->trans('Warehouse').'</th>';
+	print '<th class="liste_titre">'.$langs->trans('Warehouse').'</th>';  // From reception line
 	print '<th class="liste_titre center">'.$langs->trans('Status').'</th>';
 	print '</tr>';
 
@@ -285,11 +274,14 @@ if (empty($breakdownLines)) {
 		}
 		print '</td>';
 
-		// Warehouse
-		print '<td>';
-		if (!$alreadyProcessed && $line->bom_status == 1) {
-			$defaultWh = (int) $line->fk_warehouse > 0 ? (int) $line->fk_warehouse : getDolGlobalInt('BULKBREAKDOWN_DEFAULT_WAREHOUSE');
-			print $formproduct->selectWarehouses($defaultWh, 'wh_'.$line->receptiondet_id, '', 1, 0, 0, '', 0, 0, array(), 'minwidth150');
+		// Warehouse (from reception line)
+		print '<td class="nowraponall">';
+		if ((int) $line->fk_entrepot > 0) {
+			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
+			$tmpwh = new Entrepot($db);
+			$tmpwh->fetch((int) $line->fk_entrepot);
+			print img_picto('', 'stock', 'class="pictofixedwidth"');
+			print dol_escape_htmltag($tmpwh->ref);
 		}
 		print '</td>';
 

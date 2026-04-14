@@ -29,9 +29,7 @@ if (!$res) {
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
 dol_include_once('/bulkbreakdown/class/breakdownrule.class.php');
 
 $langs->loadLangs(array('products', 'mrp', 'bulkbreakdown@bulkbreakdown'));
@@ -64,7 +62,6 @@ $rule = new BreakdownRule($db);
 $ruleExists = $rule->fetchByProduct($id);
 
 $form = new Form($db);
-$formproduct = new FormProduct($db);
 
 // ---- Actions ----
 
@@ -72,7 +69,6 @@ if ($action == 'createRule' && $permwrite) {
 	$rule = new BreakdownRule($db);
 	$rule->fk_product = $id;
 	$rule->fk_bom = GETPOSTINT('fk_bom');
-	$rule->fk_warehouse = GETPOSTINT('fk_warehouse') > 0 ? GETPOSTINT('fk_warehouse') : null;
 	$rule->active = 1;
 	$rule->note = GETPOST('note', 'restricthtml');
 
@@ -92,7 +88,6 @@ if ($action == 'createRule' && $permwrite) {
 
 if ($action == 'updateRule' && $permwrite && $ruleExists > 0) {
 	$rule->fk_bom = GETPOSTINT('fk_bom');
-	$rule->fk_warehouse = GETPOSTINT('fk_warehouse') > 0 ? GETPOSTINT('fk_warehouse') : null;
 	$rule->note = GETPOST('note', 'restricthtml');
 
 	if ($rule->fk_bom <= 0) {
@@ -202,12 +197,6 @@ if ($ruleExists > 0) {
 		}
 		print '</td></tr>';
 
-		// Warehouse
-		print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
-		print $formproduct->selectWarehouses($rule->fk_warehouse, 'fk_warehouse', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
-		print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
-		print '</td></tr>';
-
 		// Note
 		print '<tr><td>'.$langs->trans('Note').'</td><td>';
 		print '<textarea name="note" rows="3" class="flat minwidth300">'.dol_escape_htmltag($rule->note).'</textarea>';
@@ -240,16 +229,6 @@ if ($ruleExists > 0) {
 				print ' <strong>(x'.(float) $outLine->qty.')</strong>';
 				print '<br>';
 			}
-			print '</td></tr>';
-		}
-
-		// Warehouse
-		if ($rule->fk_warehouse > 0) {
-			$wh = new Entrepot($db);
-			$wh->fetch($rule->fk_warehouse);
-			print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
-			print img_picto('', 'stock', 'class="pictofixedwidth"');
-			print '<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id='.((int) $wh->id).'">'.$wh->ref.'</a>';
 			print '</td></tr>';
 		}
 
@@ -286,12 +265,6 @@ if ($ruleExists > 0) {
 			// BOM selector
 			print '<tr><td class="titlefield fieldrequired">'.$langs->trans('SelectBOM').'</td><td>';
 			print $form->selectarray('fk_bom', $bomOptions, GETPOSTINT('fk_bom'), 1, 0, 0, '', 0, 0, 0, '', 'minwidth200');
-			print '</td></tr>';
-
-			// Warehouse
-			print '<tr><td>'.$langs->trans('Warehouse').'</td><td>';
-			print $formproduct->selectWarehouses(GETPOSTINT('fk_warehouse'), 'fk_warehouse', '', 1, 0, 0, '', 0, 0, array(), 'minwidth200');
-			print ' <span class="opacitymedium">('.$langs->trans('UseDefault').')</span>';
 			print '</td></tr>';
 
 			// Note
