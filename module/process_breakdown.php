@@ -129,7 +129,8 @@ if ($action == 'confirmProcess') {
 				(float) $lineData->qty,
 				$warehouse,
 				$receptionId,
-				$totalPrice
+				$totalPrice,
+				(int) $reception->socid
 			);
 
 			if ($moId > 0) {

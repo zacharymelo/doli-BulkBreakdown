@@ -130,9 +130,10 @@ function getLinkedMOsForReceptionProduct($db, $receptionId, $productId)
  * @param  int    $warehouseId     Warehouse ID from reception line (fk_entrepot)
  * @param  int    $receptionId     Reception ID (for linking)
  * @param  float  $purchasePrice   Total purchase price for cost propagation
+ * @param  int    $supplierId      Supplier (societe) ID for vendor price update
  * @return int                     MO ID if OK, <0 if error
  */
-function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $warehouseId, $receptionId, $purchasePrice = 0)
+function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $warehouseId, $receptionId, $purchasePrice = 0, $supplierId = 0)
 {
 	global $langs;
 
@@ -141,6 +142,7 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 	require_once DOL_DOCUMENT_ROOT.'/mrp/class/moline.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
 
 	$error = 0;
 
@@ -307,7 +309,63 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 		}
 	}
 
-	// 7. Link MO to reception via element_element
+	// 7. Update vendor price on output products
+	if (!$error && $supplierId > 0 && $purchasePrice > 0) {
+		require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+		$supplier = new Societe($db);
+		$supplier->fetch($supplierId);
+
+		foreach ($mo->lines as $line) {
+			if ($line->role == 'toproduce' && $line->qty > 0) {
+				$unitCost = (float) price2num($purchasePrice / $line->qty, 'MU');
+
+				$prodfourn = new ProductFournisseur($db);
+				$prodfourn->id = $line->fk_product;
+				$prodfourn->product_fourn_price_id = 0; // Force insert if no existing price
+
+				// Check for existing price from this supplier
+				$existingPrices = $prodfourn->list_product_fournisseur_price($line->fk_product, '', '', 0, 0, $supplierId);
+				if (is_array($existingPrices)) {
+					foreach ($existingPrices as $ep) {
+						// Match on qty=1 entries from this module (ref_fourn starts with BREAKDOWN-)
+						if (!empty($ep->fourn_ref) && strpos($ep->fourn_ref, 'BREAKDOWN-') === 0) {
+							$prodfourn->product_fourn_price_id = $ep->product_fourn_price_id;
+							break;
+						}
+					}
+				}
+
+				$refFourn = 'BREAKDOWN-'.$mo->ref;
+				$descFourn = $langs->trans('Breakdown').' ('.$mo->ref.')';
+
+				$prodfourn->update_buyprice(
+					1,              // qty (price per 1 unit)
+					$unitCost,      // buy price HT
+					$user,
+					'HT',
+					$supplier,
+					0,              // availability
+					$refFourn,      // supplier ref
+					0,              // tva_tx
+					0,              // charges
+					0,              // remise_percent
+					0,              // remise
+					0,              // newnpr
+					0,              // delivery_time_days
+					'',             // supplier_reputation
+					array(),        // localtaxes
+					'',             // default vat code
+					0,              // multicurrency_buyprice
+					'HT',           // multicurrency_price_base_type
+					1,              // multicurrency_tx
+					'',             // multicurrency_code
+					$descFourn      // desc_fourn
+				);
+			}
+		}
+	}
+
+	// 8. Link MO to reception via element_element
 	if (!$error) {
 		$mo->add_object_linked('reception', $receptionId);
 	}
