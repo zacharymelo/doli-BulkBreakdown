@@ -95,11 +95,20 @@ class ActionsBulkbreakdown
 		if ($resql) {
 			$obj = $this->db->fetch_object($resql);
 			if ($obj->nb > 0) {
-				$url = dol_buildpath('/bulkbreakdown/process_breakdown.php', 1).'?reception_id='.$object->id;
-				print '<a class="butAction" href="'.$url.'">';
-				print img_picto('', 'mrp', 'class="pictofixedwidth"');
-				print $langs->trans('ProcessBreakdowns');
-				print '</a>';
+				if ($object->statut >= 2) {
+					// Reception is closed — button is active
+					$url = dol_buildpath('/bulkbreakdown/process_breakdown.php', 1).'?reception_id='.$object->id;
+					print '<a class="butAction" href="'.$url.'">';
+					print img_picto('', 'mrp', 'class="pictofixedwidth"');
+					print $langs->trans('ProcessBreakdowns');
+					print '</a>';
+				} else {
+					// Reception is validated but not closed — button is grayed out
+					print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans('ReceptionMustBeClosed')).'">';
+					print img_picto('', 'mrp', 'class="pictofixedwidth"');
+					print $langs->trans('ProcessBreakdowns');
+					print '</a>';
+				}
 			}
 		}
 
