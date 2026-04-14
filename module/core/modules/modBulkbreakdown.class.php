@@ -32,7 +32,7 @@ class modBulkbreakdown extends DolibarrModules
 		$this->module_position = '90';
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		$this->description = 'Convert bulk purchased products into individual inventory units using BOM/MRP';
-		$this->version = '1.2.2';
+		$this->version = '1.2.3';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		$this->picto = 'mrp';
 
