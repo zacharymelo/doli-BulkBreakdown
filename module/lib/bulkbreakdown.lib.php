@@ -27,7 +27,7 @@ function fetchBreakdownRulesForReception($db, $receptionId)
 	// Get reception lines joined with breakdown rules and BOM info
 	$sql = "SELECT rd.rowid as receptiondet_id, rd.fk_product, rd.qty, rd.fk_entrepot,";
 	$sql .= " p.ref as product_ref, p.label as product_label,";
-	$sql .= " br.rowid as rule_id, br.fk_bom,";
+	$sql .= " br.rowid as rule_id, br.fk_bom, br.auto_process,";
 	$sql .= " b.ref as bom_ref, b.label as bom_label, b.status as bom_status, b.bomtype,";
 	$sql .= " b.fk_product as bom_product_id, b.qty as bom_qty";
 	$sql .= " FROM ".MAIN_DB_PREFIX."receptiondet_batch rd";

@@ -69,6 +69,7 @@ if ($action == 'createRule' && $permwrite) {
 	$rule = new BreakdownRule($db);
 	$rule->fk_product = $id;
 	$rule->fk_bom = GETPOSTINT('fk_bom');
+	$rule->auto_process = GETPOSTINT('auto_process');
 	$rule->active = 1;
 	$rule->note = GETPOST('note', 'restricthtml');
 
@@ -88,6 +89,7 @@ if ($action == 'createRule' && $permwrite) {
 
 if ($action == 'updateRule' && $permwrite && $ruleExists > 0) {
 	$rule->fk_bom = GETPOSTINT('fk_bom');
+	$rule->auto_process = GETPOSTINT('auto_process');
 	$rule->note = GETPOST('note', 'restricthtml');
 
 	if ($rule->fk_bom <= 0) {
@@ -197,6 +199,12 @@ if ($ruleExists > 0) {
 		}
 		print '</td></tr>';
 
+		// Auto-process override
+		$autoOptions = array('-1' => $langs->trans('AutoProcessUseGlobal'), '0' => $langs->trans('AutoProcessManual'), '1' => $langs->trans('AutoProcessAuto'));
+		print '<tr><td>'.$langs->trans('AutoProcess').'</td><td>';
+		print $form->selectarray('auto_process', $autoOptions, $rule->auto_process, 0, 0, 0, '', 0, 0, 0, '', 'minwidth200');
+		print '</td></tr>';
+
 		// Note
 		print '<tr><td>'.$langs->trans('Note').'</td><td>';
 		print '<textarea name="note" rows="3" class="flat minwidth300">'.dol_escape_htmltag($rule->note).'</textarea>';
@@ -232,6 +240,18 @@ if ($ruleExists > 0) {
 			print '</td></tr>';
 		}
 
+		// Auto-process
+		print '<tr><td>'.$langs->trans('AutoProcess').'</td><td>';
+		if ($rule->auto_process == 1) {
+			print '<span class="badge badge-status4">'.$langs->trans('AutoProcessAuto').'</span>';
+		} elseif ($rule->auto_process == 0) {
+			print '<span class="badge badge-status0">'.$langs->trans('AutoProcessManual').'</span>';
+		} else {
+			print '<span class="badge badge-status1">'.$langs->trans('AutoProcessUseGlobal').'</span>';
+			print ' <span class="opacitymedium">('.($langs->trans(getDolGlobalString('BULKBREAKDOWN_AUTO_PROCESS') ? 'AutoProcessAuto' : 'AutoProcessManual')).')</span>';
+		}
+		print '</td></tr>';
+
 		// Note
 		if (!empty($rule->note)) {
 			print '<tr><td>'.$langs->trans('Note').'</td><td>'.dol_escape_htmltag($rule->note).'</td></tr>';
@@ -265,6 +285,12 @@ if ($ruleExists > 0) {
 			// BOM selector
 			print '<tr><td class="titlefield fieldrequired">'.$langs->trans('SelectBOM').'</td><td>';
 			print $form->selectarray('fk_bom', $bomOptions, GETPOSTINT('fk_bom'), 1, 0, 0, '', 0, 0, 0, '', 'minwidth200');
+			print '</td></tr>';
+
+			// Auto-process override
+			$autoOptions = array('-1' => $langs->trans('AutoProcessUseGlobal'), '0' => $langs->trans('AutoProcessManual'), '1' => $langs->trans('AutoProcessAuto'));
+			print '<tr><td>'.$langs->trans('AutoProcess').'</td><td>';
+			print $form->selectarray('auto_process', $autoOptions, GETPOST('auto_process', 'int') !== '' ? GETPOSTINT('auto_process') : -1, 0, 0, 0, '', 0, 0, 0, '', 'minwidth200');
 			print '</td></tr>';
 
 			// Note

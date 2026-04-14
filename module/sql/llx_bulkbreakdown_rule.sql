@@ -10,6 +10,7 @@ CREATE TABLE llx_bulkbreakdown_rule(
 	entity             INTEGER       NOT NULL DEFAULT 1,
 	fk_product         INTEGER       NOT NULL,
 	fk_bom             INTEGER       NOT NULL,
+	auto_process       TINYINT       NOT NULL DEFAULT -1,
 	active             TINYINT       NOT NULL DEFAULT 1,
 	note               TEXT,
 	date_creation      DATETIME      NOT NULL,

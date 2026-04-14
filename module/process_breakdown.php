@@ -215,7 +215,7 @@ if (empty($breakdownLines)) {
 
 	print '<table class="tagtable nobottomiftotal liste">';
 	print '<tr class="liste_titre">';
-	print '<th class="liste_titre center" width="30"><input type="checkbox" id="checkall" checked></th>';
+	print '<th class="liste_titre center" width="30"><input type="checkbox" id="checkall"></th>';
 	print '<th class="liste_titre">'.$langs->trans('Product').'</th>';
 	print '<th class="liste_titre right">'.$langs->trans('Qty').'</th>';
 	print '<th class="liste_titre">'.$langs->trans('BOM').'</th>';
@@ -232,10 +232,18 @@ if (empty($breakdownLines)) {
 
 		print '<tr class="oddeven">';
 
-		// Checkbox
+		// Checkbox — pre-checked based on auto_process (per-rule override > global default)
 		print '<td class="center">';
 		if (!$alreadyProcessed && $line->bom_status == 1) {
-			print '<input type="checkbox" name="process_line[]" value="'.$line->receptiondet_id.'" checked class="process-checkbox">';
+			$autoProcess = (int) $line->auto_process;
+			if ($autoProcess == -1) {
+				// Use global default
+				$preChecked = getDolGlobalString('BULKBREAKDOWN_AUTO_PROCESS') ? true : false;
+			} else {
+				$preChecked = ($autoProcess == 1);
+			}
+			$chk = $preChecked ? ' checked' : '';
+			print '<input type="checkbox" name="process_line[]" value="'.$line->receptiondet_id.'"'.$chk.' class="process-checkbox">';
 		}
 		print '</td>';
 
@@ -317,8 +325,17 @@ if (empty($breakdownLines)) {
 	// JS for check-all toggle
 	print '<script>
 	$(document).ready(function() {
+		function syncCheckAll() {
+			var total = $(".process-checkbox").length;
+			var checked = $(".process-checkbox:checked").length;
+			$("#checkall").prop("checked", total > 0 && checked === total);
+		}
+		syncCheckAll();
 		$("#checkall").on("change", function() {
 			$(".process-checkbox").prop("checked", $(this).prop("checked"));
+		});
+		$(".process-checkbox").on("change", function() {
+			syncCheckAll();
 		});
 	});
 	</script>';
