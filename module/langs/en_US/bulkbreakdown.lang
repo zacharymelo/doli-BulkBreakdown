@@ -1,0 +1,50 @@
+Module510500Name = Bulk Breakdown
+Module510500Desc = Convert bulk purchased products into individual inventory units using BOM/MRP
+
+BulkbreakdownSetup = Bulk Breakdown Setup
+BulkbreakdownAbout = This module converts bulk products (e.g., 600ft spool) into individual sellable units (e.g., 600 pieces) using existing Disassembly BOM definitions and the MRP manufacturing order system.
+
+Breakdown = Breakdown
+BreakdownRule = Breakdown Rule
+BreakdownRuleDesc = Define how this bulk product should be broken down into individual units using a Disassembly BOM.
+NoBreakdownRule = No breakdown rule configured for this product.
+CreateBreakdownRule = Create Breakdown Rule
+EditBreakdownRule = Edit Breakdown Rule
+DeleteBreakdownRule = Delete Breakdown Rule
+ConfirmDeleteBreakdownRule = Are you sure you want to delete this breakdown rule?
+
+SelectBOM = Select Disassembly BOM
+NoBOMFound = No active Disassembly BOMs found for this product. Create one in the BOM module first.
+SourceWarehouse = Source Warehouse (consume from)
+DestWarehouse = Destination Warehouse (produce into)
+UseDefault = Use default from settings
+
+ProcessBreakdowns = Process Breakdowns
+ConfirmBreakdown = Confirm Bulk Breakdown
+ConfirmBreakdownDesc = The selected lines will be converted into individual units via Manufacturing Orders. This will adjust stock levels.
+BreakdownProcessed = Breakdown processed successfully. Manufacturing Order %s created.
+BreakdownsProcessed = %s breakdown(s) processed successfully.
+BreakdownSummary = Consumes %s x %s → Produces %s x %s
+BOMInactive = The linked BOM is inactive. Please update the breakdown rule.
+NoBreakdownProducts = No products on this reception have active breakdown rules.
+AlreadyProcessed = Already processed
+LinkedMO = Linked MO: %s
+SelectLinesToProcess = Select which lines to break down into individual units. Uncheck lines you want to keep as bulk.
+NoLinesSelected = No lines selected for processing.
+
+DefaultSourceWarehouse = Default Source Warehouse
+DefaultSourceWarehouseDesc = Default warehouse to consume bulk products from during breakdown
+DefaultDestWarehouse = Default Destination Warehouse
+DefaultDestWarehouseDesc = Default warehouse to produce individual units into during breakdown
+
+PermissionBreakdownRead = Read breakdown rules
+PermissionBreakdownWrite = Create and edit breakdown rules
+PermissionBreakdownProcess = Process breakdowns (create Manufacturing Orders)
+
+ErrorBOMInactive = Cannot process: BOM %s is not validated
+ErrorBOMNotDisassembly = Cannot process: BOM %s is not a Disassembly type BOM
+ErrorMOCreateFailed = Failed to create Manufacturing Order
+ErrorMOValidateFailed = Failed to validate Manufacturing Order
+ErrorStockMoveFailed = Stock movement failed
+ErrorReceptionNotFound = Reception not found
+ErrorNoPermission = You do not have permission to perform this action
