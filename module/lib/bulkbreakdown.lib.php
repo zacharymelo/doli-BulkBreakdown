@@ -309,46 +309,66 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 		}
 	}
 
-	// 7. Update vendor price on output products
-	if (!$error && $supplierId > 0 && $purchasePrice > 0) {
-		require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-		$supplier = new Societe($db);
-		$supplier->fetch($supplierId);
+	// 7. Update cost_price and vendor price on output products
+	if (!$error && $purchasePrice > 0) {
+		$supplier = null;
+		if ($supplierId > 0) {
+			require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+			$supplier = new Societe($db);
+			$supplier->fetch($supplierId);
+		}
 
 		foreach ($mo->lines as $line) {
 			if ($line->role == 'toproduce' && $line->qty > 0) {
-				$unitCost = (float) price2num($purchasePrice / $line->qty, 'MU');
+				// Full-precision unit cost (product.cost_price is double(24,8))
+				$unitCostRaw = $purchasePrice / $line->qty;
 
-				$prodfourn = new ProductFournisseur($db);
-				$prodfourn->id = $line->fk_product;
-				$prodfourn->product_fourn_price_id = 0; // Always insert new entry for history
+				// Update product.cost_price directly to preserve sub-cent precision.
+				// BOM::calculateCosts() uses cost_price before falling back to PMP,
+				// so this ensures BOM totals reflect the real breakdown cost.
+				// Only write when we have a positive value — never overwrite with 0.
+				if ($unitCostRaw > 0) {
+					$sqlCost = "UPDATE ".MAIN_DB_PREFIX."product";
+					$sqlCost .= " SET cost_price = ".((float) $unitCostRaw);
+					$sqlCost .= " WHERE rowid = ".((int) $line->fk_product);
+					$db->query($sqlCost);
+				}
 
-				$refFourn = 'BREAKDOWN-'.$mo->ref;
-				$descFourn = $langs->trans('Breakdown').' ('.$mo->ref.')';
+				// Update vendor price (MU-rounded per system display precision)
+				if ($supplier !== null) {
+					$unitCost = (float) price2num($unitCostRaw, 'MU');
 
-				$prodfourn->update_buyprice(
-					1,              // qty (price per 1 unit)
-					$unitCost,      // buy price HT
-					$user,
-					'HT',
-					$supplier,
-					0,              // availability
-					$refFourn,      // supplier ref
-					0,              // tva_tx
-					0,              // charges
-					0,              // remise_percent
-					0,              // remise
-					0,              // newnpr
-					0,              // delivery_time_days
-					'',             // supplier_reputation
-					array(),        // localtaxes
-					'',             // default vat code
-					0,              // multicurrency_buyprice
-					'HT',           // multicurrency_price_base_type
-					1,              // multicurrency_tx
-					'',             // multicurrency_code
-					$descFourn      // desc_fourn
-				);
+					$prodfourn = new ProductFournisseur($db);
+					$prodfourn->id = $line->fk_product;
+					$prodfourn->product_fourn_price_id = 0; // Always insert new entry for history
+
+					$refFourn = 'BREAKDOWN-'.$mo->ref;
+					$descFourn = $langs->trans('Breakdown').' ('.$mo->ref.')';
+
+					$prodfourn->update_buyprice(
+						1,              // qty (price per 1 unit)
+						$unitCost,      // buy price HT
+						$user,
+						'HT',
+						$supplier,
+						0,              // availability
+						$refFourn,      // supplier ref
+						0,              // tva_tx
+						0,              // charges
+						0,              // remise_percent
+						0,              // remise
+						0,              // newnpr
+						0,              // delivery_time_days
+						'',             // supplier_reputation
+						array(),        // localtaxes
+						'',             // default vat code
+						0,              // multicurrency_buyprice
+						'HT',           // multicurrency_price_base_type
+						1,              // multicurrency_tx
+						'',             // multicurrency_code
+						$descFourn      // desc_fourn
+					);
+				}
 			}
 		}
 	}
