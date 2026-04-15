@@ -326,13 +326,11 @@ function processBreakdownLine($db, $user, $bomId, $productId, $receivedQty, $war
 				// Update product.cost_price directly to preserve sub-cent precision.
 				// BOM::calculateCosts() uses cost_price before falling back to PMP,
 				// so this ensures BOM totals reflect the real breakdown cost.
-				// Only write when we have a positive value — never overwrite with 0.
-				if ($unitCostRaw > 0) {
-					$sqlCost = "UPDATE ".MAIN_DB_PREFIX."product";
-					$sqlCost .= " SET cost_price = ".((float) $unitCostRaw);
-					$sqlCost .= " WHERE rowid = ".((int) $line->fk_product);
-					$db->query($sqlCost);
-				}
+				// $0 is a valid cost (samples, promo stock, freebies).
+				$sqlCost = "UPDATE ".MAIN_DB_PREFIX."product";
+				$sqlCost .= " SET cost_price = ".((float) $unitCostRaw);
+				$sqlCost .= " WHERE rowid = ".((int) $line->fk_product);
+				$db->query($sqlCost);
 
 				// Update vendor price (MU-rounded per system display precision)
 				if ($supplier !== null) {
